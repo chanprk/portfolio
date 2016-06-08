@@ -1,0 +1,555 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Bactesting Value-At-Risk</title><meta name="generator" content="MATLAB 8.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-06-08"><meta name="DC.source" content="backtest.m">
+      <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+      <style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px auto; max-width: 600px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px auto ; color:#4c4c4c; background:#effbfc }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:1.4em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+  </style></head><body>
+
+
+    <div class="content"><h1>Bactesting Value-At-Risk</h1>
+        <!--introduction--><!--/introduction-->
+        <h2>Contents</h2>
+        <div>
+            <ul><li><a href="#1">Import the data</a></li>
+                <li><a href="#2">Collecting VaR and Hit Sequence</a></li>
+                <li><a href="#3">Test unconditional coverage</a></li>
+                <li><a href="#4">Test independence</a></li>
+                <li><a href="#5">Joint test</a></li>
+                <li><a href="#6">Conclusion</a></li>
+            </ul>
+        </div>
+        <h2>Import the data<a name="1"></a></h2>
+        <p>
+            The loss \(X_t\) is defined as: 
+            \[
+                X_t = - ( \log P_t - \log P_{t-1} ).
+            \]
+            Here, <strong> daily.xlsx </strong> contains log return of FTSE 100 index.
+        </p>
+        <pre class="codeinput"><span class="comment">% FTSE100 log return</span>
+
+raw = xlsread(<span class="string">'daily.xlsx'</span>);
+Dates = num2str(raw(:,1));
+FTSE100Losses = -raw(:,2);
+clearvars <span class="string">raw</span>;
+
+DateNums = datenum(Dates,<span class="string">'yyyymmdd'</span>);
+DateStrings = datestr(DateNums);
+
+T = length(FTSE100Losses);
+TE = T - 500;
+
+fprintf(<span class="string">'Estimation window start=%s, stop=%s\n'</span>,<span class="keyword">...</span>
+    datestr(DateNums(1)),datestr(DateNums(TE)));
+fprintf(<span class="string">'Testing window start=%s, stop=%s\n'</span>,<span class="keyword">...</span>
+    datestr(DateNums(TE+1)),datestr(DateNums(T)));
+<span class="comment">% Let show what the data looks like.</span>
+
+plot(DateNums,FTSE100Losses);
+set(gca,<span class="string">'XMinorTick'</span>,<span class="string">'on'</span>);
+datetick();
+</pre><pre class="codeoutput">Estimation window start=11-Jan-1999, stop=09-Jan-2006
+Testing window start=10-Jan-2006, stop=31-Dec-2007
+</pre>
+
+        <img vspace="5" hspace="5" src="backtest_01.png" alt=""> 
+        <p>  
+            In this report, I will evaluate performance of a VaR model over a two-year testing window starting from January 10, 2006 to December 31, 2007. Initial estimate of VaR will use observations on the estimation window, which dating from January, 2006 to January, 2009. This amounts to seven years of lookback data. Altogether, our total sample size is nine years long.
+        </p>
+        <h2>Collecting VaR and Hit Sequence<a name="2"></a></h2>
+
+        The loss dynamics are modeled by constant mean <strong>GARCH(1,1)</strong> with the student's t innovation :
+        <p>
+            \[
+                \begin{align}
+                X_t &= \mu + \epsilon_t, \\
+                \epsilon_t &= \sigma_t Z_t, Z_t \sim \text{standard } t_v, \\
+                \sigma_t^2 &= a_0 + a_1 \epsilon^2_{t-1} + b_1 \sigma^2_{t-1}.
+                \end{align}
+            \]
+        </p>
+
+        <p>
+            On every single day \(t\), GARCH's parameter is estmated from a size-\(\text{T}_E\) window of historical losses up to day \(t\). Day \(t+1\) volatility and <em>ex-ante</em> VaR is calculated as in the below figure.
+        </p>
+        <img vspace="5" hspace="5" src="rollingest.png" alt="">
+        <p>
+            Ex-post \(X_{t+1}\) is compared with VaR obtained above. <strong>Hit sequence</strong> is an indicator which equals to one only if the loss violates the forecast VaR.
+            \[
+                I_{t+1}=
+
+    \begin{cases}
+      1, & \text{if}\ X_{t+1} \gt \text{VaR}_{\alpha,t+1}\\
+      0, & \text{if}\ X_{t+1} \leq \text{VaR}_{\alpha,t+1}
+    \end{cases}
+
+            \]
+        </p>
+
+        <pre class="codeinput">Mdl = garch(<span class="string">'Offset'</span>,NaN,<span class="string">'GARCH'</span>,NaN,<span class="string">'ARCH'</span>,NaN, <span class="string">'Distribution'</span>,<span class="string">'t'</span>);
+
+VaR99 = zeros(T-TE,1);
+VaR95 = zeros(T-TE,1);
+I99 = zeros(T-TE,1);
+I95 = zeros(T-TE,1);
+
+<span class="keyword">for</span> t = TE:T-1
+    <span class="comment">% Garch model estimation on window</span>
+    X = FTSE100Losses(t-TE+1:t);
+    EstMdl = estimate(Mdl,X,<span class="string">'Display'</span>,<span class="string">'off'</span>);
+    mu = EstMdl.Offset;
+    a0 = EstMdl.Constant;
+    a1 = EstMdl.ARCH{1};
+    b1 = EstMdl.GARCH{1};
+    nu = EstMdl.Distribution.DoF;
+
+    Sig2 = infer(EstMdl, X);
+
+    <span class="comment">% 1-step</span>
+    sig2_t = Sig2(end);
+    ep2_t = (X(end) - mu)^2;
+    sig2_tplus1 = a0 + a1 * ep2_t + b1 * sig2_t;
+    sig_tplus1 = sqrt(sig2_tplus1);
+
+    <span class="comment">% VaR</span>
+    scale = sqrt((nu-2)/nu);
+    vaR99 = mu + sig_tplus1 * scale * tinv(0.99, nu);
+    vaR95 = mu + sig_tplus1 * scale * tinv(0.95, nu);
+
+    <span class="comment">% Output</span>
+    VaR99(t-TE+1) = vaR99;
+    VaR95(t-TE+1) = vaR95;
+
+    <span class="keyword">if</span> FTSE100Losses(t+1) &gt; vaR99
+        I99(t-TE+1) = 1;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> FTSE100Losses(t+1) &gt; vaR95
+        I95(t-TE+1) = 1;
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre>
+
+<h2>Test unconditional coverage<a name="3"></a></h2>
+
+    <p>
+        We test if the fraction of VaR violations is equal to \(p = 1 -\alpha \), i.e., we test
+        \[
+            H_0 : \mathbb{P}(I_{t+1}=1) = p \text{ against } H_A : \mathbb{P}(I_{t+1}=1) \neq p,
+        \] 
+        keeping in mind the assumption  \(I_{t+1} | \mathcal{F}_{t} \stackrel{iid}{\sim} \operatorname{Bern} \left({p}\right)\).
+
+    </p>
+    <p>
+        The test statistics we are going to use will be <strong>the likelihood ratio</strong>.
+        The likelihood function for Bernoulli distribution in this particular case is :
+        \[ 
+            L(\pi| I_{T_{E+1}}, \dots, I_T) = (1-\pi)^{T_0}\pi^{T_1},
+        \] where \(T_0\) and \(T_1\) are the number of 0s and 1s in the testing window.
+        Maximizing the likelihood w.r.t. \(\pi\) yields \(\hat{\pi} = T_1/T\). Under the null hypothesis :
+        \[
+            LR_{uc} = -2 \log \left[ L(p| I_{T_{E+1}}, \dots, I_T) / L(\hat{\pi}| I_{T_{E+1}}, \dots, I_T)  \right] \stackrel{asym}{\sim} \chi^2(1).
+        \]
+    </p>
+  <pre class="codeinput">
+<span class="keyword">function</span> lr=uctest(alpha, I)
+    p = 1-alpha;
+    T = length(I);
+    T1 = sum(I); T0 = T - T1;
+    p_est = T1/T;
+    lr= -2 * log(likelihood(p, T0, T1) / likelihood(p_est, T0, T1));
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> lik=likelihood(pi, T0, T1)
+    lik = (1-pi)^T0*pi^T1;
+<span class="keyword">end</span>
+</pre>
+
+        <pre class="codeinput">
+disp(<span class="string">' '</span>);
+disp(<span class="string">'================ VaR95 ================'</span>)
+subplot(2,1,1);
+LR_uc95 = uctest(0.95,I95);
+modelfit(LR_uc95, 1, 0.95);
+
+disp(<span class="string">'================ VaR99 ================'</span>)
+subplot(2,1,2);
+LR_uc99 = uctest(0.99,I99);
+modelfit(LR_uc99, 1, 0.95);
+            </pre>
+        <pre class="codeoutput"> 
+================ VaR95 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=0.642, P-Value=0.423 
+	Accept null hypothesis 
+================ VaR99 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=0.719, P-Value=0.397 
+	Accept null hypothesis 
+        </pre>
+        <img vspace="5" hspace="5" src="backtest_03.png" alt=""> 
+
+        <h2>Test of independence<a name="4"></a></h2>
+    <p>
+        This is a test of no violation clusters (no dependence in VaR violation).
+        We model depedence in of \(I_{t+1} | \mathcal{F}_{t} \) using markov chain with transition matrix :
+        \[
+            \Pi = \begin{bmatrix}
+              1-\pi_{01} & \pi_{01} \\
+              1-\pi_{11} & \pi_{11}
+            \end{bmatrix},
+        \] where \( \pi{11} = \mathbb{P}(I_{t+1}=1|I_t=1) \) and \( \pi{01} = \mathbb{P}(I_{t+1}=1|I_t=0) \).
+        The likelihood function in this particular case is :
+        \[ 
+            L(\Pi| I_{T_{E+2}}, \dots, I_T) = (1-\pi_{01})^{T_{00}}\pi_{01}^{T_{01}}(1-\pi_{11})^{T_{10}}\pi_{11}^{T_{11}},
+        \] where \(T_{ij}\) is the number of observaions j following an i.
+        Maximizing the likelihood w.r.t. \(\pi\) yields 
+        \[
+            \hat{\Pi} = \begin{bmatrix}
+              1-\hat{\pi}_{01} & \hat{\pi}_{01} \\
+              1-\hat{\pi}_{11} & \hat{\pi}_{11}
+            \end{bmatrix},
+        \] where
+        \[ \hat{\pi}_{01} = \frac{T_{01}}{T_{00}+T_{01}}, \hat{\pi}_{11} = \frac{T_{11}}{T_{10}+T_{11}}.\]
+
+
+        Under the null hypothesis of independence, we must have
+        \[
+            \pi_{01} = \mathbb{P}(I_{t+1}=1|I_t=0) =  \mathbb{P}(I_{t+1}=1|I_t=1) = \pi_{11}.
+        \] By maximizing the likelihood we have, \(\hat{\pi}_{01} = \hat{\pi} =\hat{\pi}_{11}\), where \(\hat{\pi} = \frac{T10+T11}{T00+T01+T10+T11}.\)
+        <br/><br/>
+        Furthermore, 
+        \[
+            LR_{ind} = -2 \log \left[ L(\hat{\Pi}_{ind} | I_{T_{E+2}}, \dots, I_T) / L(\hat{\Pi}| I_{T_{E+2}}, \dots, I_T)  \right] \stackrel{asym}{\sim} \chi^2(1),
+        \] given that :
+        \[
+            \hat{\Pi}_{ind} = \begin{bmatrix}
+              1-\hat{\pi} & \hat{\pi} \\
+              1-\hat{\pi} & \hat{\pi}
+            \end{bmatrix}.
+        \]
+    </p>
+        <pre class="codeinput">
+<span class="keyword">function</span> lr=indtest(alpha, I)
+    I_t = I(1:end-1);
+    I_tplus1 = I(2:end);
+    T00 = sum(I_t==0 &amp; I_tplus1==0);
+    T01 = sum(I_t==0 &amp; I_tplus1==1);
+    T10 = sum(I_t==1 &amp; I_tplus1==0);
+    T11 = sum(I_t==1 &amp; I_tplus1==1);
+    p01_est = T01/(T00+T01);
+    p11_est = T11/(T10+T11);
+    p_est = (T10+T11)/(T00+T01+T10+T11);
+    lr = -2 * log(likelihood(p_est, p_est, T00, T01, T10, T11) / <span class="keyword">...</span>
+                  likelihood(p01_est, p11_est, T00, T01, T10, T11));
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> lik=likelihood(p01, p11, T00, T01, T10, T11)
+    lik = (1-p01)^T00 * p01^T01 * (1-p11)^T10 * p11^T11;
+<span class="keyword">end</span>
+        </pre>
+        <pre class="codeinput">disp(<span class="string">' '</span>);
+disp(<span class="string">'================ VaR95 ================'</span>)
+subplot(2,1,1);
+LR_ind95 = indtest(0.95, I95);
+modelfit(LR_ind95, 1, 0.95);
+
+disp(<span class="string">'================ VaR99 ================'</span>)
+subplot(2,1,2);
+LR_ind99 = indtest(0.99, I99);
+modelfit(LR_ind99, 1, 0.95);
+</pre><pre class="codeoutput"> 
+================ VaR95 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=4.240, P-Value=0.039 
+	Reject null hypothesis 
+================ VaR99 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=0.926, P-Value=0.336 
+	Accept null hypothesis 
+</pre><img vspace="5" hspace="5" src="backtest_04.png" alt=""> <h2>Joint test<a name="5"></a></h2>
+
+        <p>
+            The joint hypothesis can be tested by:
+            \[
+                LR_{joint} = -2 \log \left[ L(p| I_{T_{E+2}}, \dots, I_T) / L(\hat{\Pi}| I_{T_{E+2}}, \dots, I_T)  \right] \stackrel{asym}{\sim} \chi^2(2),
+            \] which corresponds to testing the null that \(\pi_{01}=p=\pi_{11}\).
+        </p>
+        <p>
+            Note that
+            \[
+                LR_{joint} = LR_{uc} + LR_{ind}.
+            \] 
+        </p>
+
+<pre class="codeinput">disp(<span class="string">' '</span>);
+disp(<span class="string">'================ VaR95 ================'</span>)
+subplot(2,1,1);
+LR_join95 = LR_uc95 + LR_ind95;
+modelfit(LR_join95, 2, 0.95);
+
+disp(<span class="string">'================ VaR99 ================'</span>)
+subplot(2,1,2);
+LR_join99 = LR_uc99 + LR_ind99;
+modelfit(LR_join99, 2, 0.95);
+</pre><pre class="codeoutput"> 
+================ VaR95 ================
+Chi-square with 2-dof :
+	Alpha=0.950, Critical Value=5.991 
+	LR=4.882, P-Value=0.087 
+	Accept null hypothesis 
+================ VaR99 ================
+Chi-square with 2-dof :
+	Alpha=0.950, Critical Value=5.991 
+	LR=1.645, P-Value=0.439 
+	Accept null hypothesis 
+</pre><img vspace="5" hspace="5" src="backtest_05.png" alt=""> 
+
+<h2>Conclusion<a name="6"></a></h2>
+<p>
+VaR models pass all tests for both 95% and 99% alpha level during the 2006-2007 period. Although, it's worth noting that the test statistics for \(\text{VaR}_{95\%}\) is closest to the 5% cut-off which can lead to rejection in independence test. One explanation could be that it is not totally cleared that the violations of the \(\text{VaR}_{95\%}\) are really indepedent. By looking at below figures it is plausible to believe that the violations in the \(\text{VaR}_{95\%}\) case tend to cluster in time.
+</p>
+<pre class="codeinput">subplot(2,1,1);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold <span class="string">on</span>;
+plot(DateNums(TE+1:T), VaR95);
+<span class="keyword">for</span> t = TE+1:T
+    <span class="keyword">if</span> I95(t-TE)
+        line(DateNums([t t]), ylim, <span class="string">'Color'</span>, <span class="string">'Green'</span>);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+datetick();
+hold <span class="string">off</span>;
+
+subplot(2,1,2);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold <span class="string">on</span>;
+plot(DateNums(TE+1:T), VaR99);
+<span class="keyword">for</span> t = TE+1:T
+    <span class="keyword">if</span> I99(t-TE)
+        line(DateNums([t t]), ylim, <span class="string">'Color'</span>, <span class="string">'Green'</span>);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+datetick();
+hold <span class="string">off</span>;
+</pre><img vspace="5" hspace="5" src="backtest_02.png" alt="">
+
+
+<p class="footer"><br><a href="mailto:chanp.contact@gmail.com?Subject=Backtesting%20VaR" rel="author">Author: Pruksapha, Chan</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Bactesting Value-At-Risk
+
+%% Import the data
+
+% FTSE100 log return
+
+raw = xlsread('daily.xlsx');
+Dates = num2str(raw(:,1));
+FTSE100Losses = -raw(:,2);
+clearvars raw;
+
+DateNums = datenum(Dates,'yyyymmdd');
+DateStrings = datestr(DateNums);
+
+T = length(FTSE100Losses);
+TE = T - 500;
+
+% Let show what the data looks like.
+
+plot(DateNums,FTSE100Losses);
+set(gca,'XMinorTick','on');
+datetick();
+
+
+%% Collecting VaR and Hit Sequence
+
+Mdl = garch('Offset',NaN,'GARCH',NaN,'ARCH',NaN, 'Distribution','t');
+
+VaR99 = zeros(T-TE,1);
+VaR95 = zeros(T-TE,1);
+I99 = zeros(T-TE,1);
+I95 = zeros(T-TE,1);
+
+for t = TE+1:T
+    % Garch model estimation on window
+    X = FTSE100Losses(t-TE:t-1);
+    EstMdl = estimate(Mdl,X,'Display','off');
+    mu = EstMdl.Offset;
+    a0 = EstMdl.Constant;
+    a1 = EstMdl.ARCH{1};
+    b1 = EstMdl.GARCH{1};
+    nu = EstMdl.Distribution.DoF;
+
+    Sig2 = infer(EstMdl, X);
+    
+    % 1-step     
+    sig2_tminus1 = Sig2(end);
+    ep2_tminus1 = (X(end) - mu)^2;
+    sig2_t = a0 + a1 * ep2_tminus1 + b1 * sig2_tminus1;
+    sig_t = sqrt(sig2_t);
+    
+    % VaR
+    scale = sqrt((nu-2)/nu);
+    vaR99 = mu + sig_t * scale * tinv(0.99, nu);
+    vaR95 = mu + sig_t * scale * tinv(0.95, nu);
+ 
+    % Output
+    VaR99(t-TE) = vaR99;
+    VaR95(t-TE) = vaR95;
+    
+    if FTSE100Losses(t) > vaR99 
+        I99(t-TE) = 1;
+    end
+    if FTSE100Losses(t) > vaR95 
+        I95(t-TE) = 1;
+    end
+       
+end
+
+%% Visualize Hit Sequence
+
+
+subplot(2,1,1);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold on;
+plot(DateNums(TE+1:T), VaR95);
+for t = TE+1:T
+    if I95(t-TE)
+        line(DateNums([t t]), ylim, 'Color', 'Green');
+    end
+end
+datetick();
+hold off;
+
+subplot(2,1,2);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold on;
+plot(DateNums(TE+1:T), VaR99);
+for t = TE+1:T
+    if I99(t-TE)
+        line(DateNums([t t]), ylim, 'Color', 'Green');
+    end
+end
+datetick();
+hold off;
+
+%% Test unconditional coverage
+%
+% <include>unctest.m</include>
+%
+
+disp(' ');
+disp('================ VaR95 ================')
+subplot(2,1,1);
+LR_uc95 = uctest(0.95,I95);
+modelfit(LR_uc95, 1, 0.95);
+
+disp('================ VaR99 ================')
+subplot(2,1,2);
+LR_uc99 = uctest(0.99,I99);
+modelfit(LR_uc99, 1, 0.95);
+
+%% Test independence
+%
+% <include>indtest.m</include>
+%
+
+disp(' ');
+disp('================ VaR95 ================')
+subplot(2,1,1);
+LR_ind95 = indtest(0.95, I95);
+modelfit(LR_ind95, 1, 0.95);
+
+disp('================ VaR99 ================')
+subplot(2,1,2);
+LR_ind99 = indtest(0.99, I99);
+modelfit(LR_ind99, 1, 0.95);
+
+%% Joint test
+
+disp(' ');
+disp('================ VaR95 ================')
+subplot(2,1,1);
+LR_join95 = LR_uc95 + LR_ind95;
+modelfit(LR_join95, 2, 0.95);
+
+disp('================ VaR99 ================')
+subplot(2,1,2);
+LR_join99 = LR_uc99 + LR_ind99;
+modelfit(LR_join99, 2, 0.95);
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
