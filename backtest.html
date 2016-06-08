@@ -1,0 +1,372 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Bactesting Value-At-Risk</title><meta name="generator" content="MATLAB 8.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-06-08"><meta name="DC.source" content="backtest.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Bactesting Value-At-Risk</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Import the data</a></li><li><a href="#2">Collecting VaR and Hit Sequence</a></li><li><a href="#3">Visualize Hit Sequence</a></li><li><a href="#4">Test unconditional coverage</a></li><li><a href="#5">Test independence</a></li><li><a href="#6">Joint test</a></li></ul></div><h2>Import the data<a name="1"></a></h2><pre class="codeinput"><span class="comment">% FTSE100 log return</span>
+
+raw = xlsread(<span class="string">'daily.xlsx'</span>);
+Dates = num2str(raw(:,1));
+FTSE100Losses = -raw(:,2);
+clearvars <span class="string">raw</span>;
+
+DateNums = datenum(Dates,<span class="string">'yyyymmdd'</span>);
+DateStrings = datestr(DateNums);
+
+T = length(FTSE100Losses);
+TE = T - 500;
+
+fprintf(<span class="string">'Estimation window start=%s, stop=%s\n'</span>,<span class="keyword">...</span>
+    datestr(DateNums(1)),datestr(DateNums(TE)));
+fprintf(<span class="string">'Testing window start=%s, stop=%s\n'</span>,<span class="keyword">...</span>
+    datestr(DateNums(TE+1)),datestr(DateNums(T)));
+<span class="comment">% Let show what the data looks like.</span>
+
+plot(DateNums,FTSE100Losses);
+set(gca,<span class="string">'XMinorTick'</span>,<span class="string">'on'</span>);
+datetick();
+</pre><pre class="codeoutput">Estimation window start=11-Jan-1999, stop=09-Jan-2006
+Testing window start=10-Jan-2006, stop=31-Dec-2007
+</pre><img vspace="5" hspace="5" src="backtest_01.png" alt=""> <h2>Collecting VaR and Hit Sequence<a name="2"></a></h2><pre class="codeinput">Mdl = garch(<span class="string">'Offset'</span>,NaN,<span class="string">'GARCH'</span>,NaN,<span class="string">'ARCH'</span>,NaN, <span class="string">'Distribution'</span>,<span class="string">'t'</span>);
+
+VaR99 = zeros(T-TE,1);
+VaR95 = zeros(T-TE,1);
+I99 = zeros(T-TE,1);
+I95 = zeros(T-TE,1);
+
+<span class="keyword">for</span> t = TE:T-1
+    <span class="comment">% Garch model estimation on window</span>
+    X = FTSE100Losses(t-TE+1:t);
+    EstMdl = estimate(Mdl,X,<span class="string">'Display'</span>,<span class="string">'off'</span>);
+    mu = EstMdl.Offset;
+    a0 = EstMdl.Constant;
+    a1 = EstMdl.ARCH{1};
+    b1 = EstMdl.GARCH{1};
+    nu = EstMdl.Distribution.DoF;
+
+    Sig2 = infer(EstMdl, X);
+
+    <span class="comment">% 1-step</span>
+    sig2_t = Sig2(end);
+    ep2_t = (X(end) - mu)^2;
+    sig2_tplus1 = a0 + a1 * ep2_t + b1 * sig2_t;
+    sig_tplus1 = sqrt(sig2_tplus1);
+
+    <span class="comment">% VaR</span>
+    scale = sqrt((nu-2)/nu);
+    vaR99 = mu + sig_tplus1 * scale * tinv(0.99, nu);
+    vaR95 = mu + sig_tplus1 * scale * tinv(0.95, nu);
+
+    <span class="comment">% Output</span>
+    VaR99(t-TE+1) = vaR99;
+    VaR95(t-TE+1) = vaR95;
+
+    <span class="keyword">if</span> FTSE100Losses(t+1) &gt; vaR99
+        I99(t-TE+1) = 1;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> FTSE100Losses(t+1) &gt; vaR95
+        I95(t-TE+1) = 1;
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><h2>Visualize Hit Sequence<a name="3"></a></h2><pre class="codeinput">subplot(2,1,1);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold <span class="string">on</span>;
+plot(DateNums(TE+1:T), VaR95);
+<span class="keyword">for</span> t = TE+1:T
+    <span class="keyword">if</span> I95(t-TE)
+        line(DateNums([t t]), ylim, <span class="string">'Color'</span>, <span class="string">'Green'</span>);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+datetick();
+hold <span class="string">off</span>;
+
+subplot(2,1,2);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold <span class="string">on</span>;
+plot(DateNums(TE+1:T), VaR99);
+<span class="keyword">for</span> t = TE+1:T
+    <span class="keyword">if</span> I99(t-TE)
+        line(DateNums([t t]), ylim, <span class="string">'Color'</span>, <span class="string">'Green'</span>);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+datetick();
+hold <span class="string">off</span>;
+</pre><img vspace="5" hspace="5" src="backtest_02.png" alt=""> <h2>Test unconditional coverage<a name="4"></a></h2><p><a href="include&gt;unctest.m</include">include&gt;unctest.m&lt;/include</a></p><pre class="codeinput">disp(<span class="string">' '</span>);
+disp(<span class="string">'================ VaR95 ================'</span>)
+subplot(2,1,1);
+LR_uc95 = uctest(0.95,I95);
+modelfit(LR_uc95, 1, 0.95);
+
+disp(<span class="string">'================ VaR99 ================'</span>)
+subplot(2,1,2);
+LR_uc99 = uctest(0.99,I99);
+modelfit(LR_uc99, 1, 0.95);
+</pre><pre class="codeoutput"> 
+================ VaR95 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=0.642, P-Value=0.423 
+	Accept null hypothesis 
+================ VaR99 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=0.719, P-Value=0.397 
+	Accept null hypothesis 
+</pre><img vspace="5" hspace="5" src="backtest_03.png" alt=""> <h2>Test independence<a name="5"></a></h2><p><a href="include&gt;indtest.m</include">include&gt;indtest.m&lt;/include</a></p><pre class="codeinput">disp(<span class="string">' '</span>);
+disp(<span class="string">'================ VaR95 ================'</span>)
+subplot(2,1,1);
+LR_ind95 = indtest(0.95, I95);
+modelfit(LR_ind95, 1, 0.95);
+
+disp(<span class="string">'================ VaR99 ================'</span>)
+subplot(2,1,2);
+LR_ind99 = indtest(0.99, I99);
+modelfit(LR_ind99, 1, 0.95);
+</pre><pre class="codeoutput"> 
+================ VaR95 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=3.581, P-Value=0.058 
+	Accept null hypothesis 
+================ VaR99 ================
+Chi-square with 1-dof :
+	Alpha=0.950, Critical Value=3.841 
+	LR=0.199, P-Value=0.655 
+	Accept null hypothesis 
+</pre><img vspace="5" hspace="5" src="backtest_04.png" alt=""> <h2>Joint test<a name="6"></a></h2><pre class="codeinput">disp(<span class="string">' '</span>);
+disp(<span class="string">'================ VaR95 ================'</span>)
+subplot(2,1,1);
+LR_join95 = LR_uc95 + LR_ind95;
+modelfit(LR_join95, 2, 0.95);
+
+disp(<span class="string">'================ VaR99 ================'</span>)
+subplot(2,1,2);
+LR_join99 = LR_uc99 + LR_ind99;
+modelfit(LR_join99, 2, 0.95);
+</pre><pre class="codeoutput"> 
+================ VaR95 ================
+Chi-square with 2-dof :
+	Alpha=0.950, Critical Value=5.991 
+	LR=4.223, P-Value=0.121 
+	Accept null hypothesis 
+================ VaR99 ================
+Chi-square with 2-dof :
+	Alpha=0.950, Critical Value=5.991 
+	LR=0.918, P-Value=0.632 
+	Accept null hypothesis 
+</pre><img vspace="5" hspace="5" src="backtest_05.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Bactesting Value-At-Risk
+
+%% Import the data
+
+% FTSE100 log return
+
+raw = xlsread('daily.xlsx');
+Dates = num2str(raw(:,1));
+FTSE100Losses = -raw(:,2);
+clearvars raw;
+
+DateNums = datenum(Dates,'yyyymmdd');
+DateStrings = datestr(DateNums);
+
+T = length(FTSE100Losses);
+TE = T - 500;
+
+fprintf('Estimation window start=%s, stop=%s\n',...
+    datestr(DateNums(1)),datestr(DateNums(TE)));
+fprintf('Testing window start=%s, stop=%s\n',...
+    datestr(DateNums(TE+1)),datestr(DateNums(T)));
+% Let show what the data looks like.
+
+plot(DateNums,FTSE100Losses);
+set(gca,'XMinorTick','on');
+datetick();
+
+
+%% Collecting VaR and Hit Sequence
+Mdl = garch('Offset',NaN,'GARCH',NaN,'ARCH',NaN, 'Distribution','t');
+
+VaR99 = zeros(T-TE,1);
+VaR95 = zeros(T-TE,1);
+I99 = zeros(T-TE,1);
+I95 = zeros(T-TE,1);
+
+for t = TE:T-1
+    % Garch model estimation on window
+    X = FTSE100Losses(t-TE+1:t);
+    EstMdl = estimate(Mdl,X,'Display','off');
+    mu = EstMdl.Offset;
+    a0 = EstMdl.Constant;
+    a1 = EstMdl.ARCH{1};
+    b1 = EstMdl.GARCH{1};
+    nu = EstMdl.Distribution.DoF;
+
+    Sig2 = infer(EstMdl, X);
+
+    % 1-step
+    sig2_t = Sig2(end);
+    ep2_t = (X(end) - mu)^2;
+    sig2_tplus1 = a0 + a1 * ep2_t + b1 * sig2_t;
+    sig_tplus1 = sqrt(sig2_tplus1);
+
+    % VaR
+    scale = sqrt((nu-2)/nu);
+    vaR99 = mu + sig_tplus1 * scale * tinv(0.99, nu);
+    vaR95 = mu + sig_tplus1 * scale * tinv(0.95, nu);
+
+    % Output
+    VaR99(t-TE+1) = vaR99;
+    VaR95(t-TE+1) = vaR95;
+
+    if FTSE100Losses(t+1) > vaR99
+        I99(t-TE+1) = 1;
+    end
+    if FTSE100Losses(t+1) > vaR95
+        I95(t-TE+1) = 1;
+    end
+
+end
+
+%% Visualize Hit Sequence
+
+
+subplot(2,1,1);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold on;
+plot(DateNums(TE+1:T), VaR95);
+for t = TE+1:T
+    if I95(t-TE)
+        line(DateNums([t t]), ylim, 'Color', 'Green');
+    end
+end
+datetick();
+hold off;
+
+subplot(2,1,2);
+plot(DateNums(TE+1:T), FTSE100Losses(TE+1:T));
+hold on;
+plot(DateNums(TE+1:T), VaR99);
+for t = TE+1:T
+    if I99(t-TE)
+        line(DateNums([t t]), ylim, 'Color', 'Green');
+    end
+end
+datetick();
+hold off;
+
+%% Test unconditional coverage
+%
+% <include>unctest.m</include>
+%
+
+disp(' ');
+disp('================ VaR95 ================')
+subplot(2,1,1);
+LR_uc95 = uctest(0.95,I95);
+modelfit(LR_uc95, 1, 0.95);
+
+disp('================ VaR99 ================')
+subplot(2,1,2);
+LR_uc99 = uctest(0.99,I99);
+modelfit(LR_uc99, 1, 0.95);
+
+%% Test independence
+%
+% <include>indtest.m</include>
+%
+
+disp(' ');
+disp('================ VaR95 ================')
+subplot(2,1,1);
+LR_ind95 = indtest(0.95, I95);
+modelfit(LR_ind95, 1, 0.95);
+
+disp('================ VaR99 ================')
+subplot(2,1,2);
+LR_ind99 = indtest(0.99, I99);
+modelfit(LR_ind99, 1, 0.95);
+
+%% Joint test
+
+disp(' ');
+disp('================ VaR95 ================')
+subplot(2,1,1);
+LR_join95 = LR_uc95 + LR_ind95;
+modelfit(LR_join95, 2, 0.95);
+
+disp('================ VaR99 ================')
+subplot(2,1,2);
+LR_join99 = LR_uc99 + LR_ind99;
+modelfit(LR_join99, 2, 0.95);
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
