@@ -1,0 +1,11 @@
+---
+title: "Introduction"
+output: md_document
+fontsize: 20pt
+---
+
+
+
+In this shiny app, I aim to investigate a possibility to do pair trade on pair of `USDGBP` and `GlaxoSmithKline` stock listed on **London Stock Exchange** both of which are dominated in sterling. Specifically, the cointegration relation
+
+\\[\\omega=5\\]
