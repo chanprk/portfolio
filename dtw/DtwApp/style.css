@@ -1,0 +1,19 @@
+label {display:inline;}
+
+#intro-text{
+  font-size: 12pt;
+}
+
+.navbar, .form-group{
+  margin-bottom:0;
+}
+
+.container-fluid{
+  padding: 0;
+}
+
+#date-panel{
+  padding: 5px 0 0 20px;
+  background-color:#e8f4f8;
+  overflow:auto;
+}
