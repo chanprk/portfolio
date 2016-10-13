@@ -1,5 +1,9 @@
 label {display:inline;}
 
+#display, #display2{
+  height:44vh !important;
+}
+
 #intro-text{
   font-size: 12pt;
 }
@@ -12,8 +16,12 @@ label {display:inline;}
   padding: 0;
 }
 
-#date-panel{
-  padding: 5px 0 0 20px;
+.shiny-split-layout > div{
+  overflow: visible;
+}
+
+#control{
   background-color:#e8f4f8;
-  overflow:auto;
+  overflow: visible;
+  border-radius: 0;
 }

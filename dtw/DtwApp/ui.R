@@ -1,20 +1,20 @@
 
 library(shiny)
 
-params = list()
-params[[1]] = list()
-params[[1]][['select']] = c('Post-brexit' = 1 , 'August' = 2)
-
-cluster.one <- verticalLayout(
-    fluidRow(column(6, plotOutput("spreads_plot")),
-             column(6, textOutput("clust_summary"))),
-    fluidRow(column(8, selectInput("select","Period:", choices=params[[1]][['select']], selected=1)),
-             column(4, textOutput("selected_text"))),
-    uiOutput("members")
+one.sidebarPanel <- wellPanel(id='control',
+    selectInput("cluster_id","Cluster:", choices=c('Cluster 1' = 1,'Cluster 2' = 2,'Cluster 3' = 3,'Cluster 4' = 4 ), selected=1),
+    br(),
+    uiOutput("control2")
   )
 
+
+one.mainPanel <- div(id="display-wrapper",verticalLayout(plotOutput("display",height = "40%"),plotOutput("display2",height = "40%")))
+
+one.dashboard <- splitLayout(cellWidths = c("35%", "65%"),one.sidebarPanel, one.mainPanel)
+  
+
 # Define UI for application that draws a histogram
-shinyUI(navbarPage("Spread Clustering",
+shinyUI(navbarPage("Stock Clustering",
       tabPanel("Introduction",
                       withMathJax(),
                       fluidRow(id='intro-text',
@@ -25,6 +25,6 @@ shinyUI(navbarPage("Spread Clustering",
                         ) 
                       ),
       tabPanel("Cluster One",
-               includeCSS("style.css"),
-               cluster.one)
+               includeCSS("app.css"),
+               one.dashboard)
 ))
