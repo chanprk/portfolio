@@ -36,12 +36,12 @@ params[[6]][['ylim']] = c(0.80, 1.20)
 
 
 spreads <- readRDS('normalized_sp.RData')
-topfives <- readRDS('topmems.RData')
 prices <- readRDS('FTSE100XTS.RData')
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
 
+  topfives <- readRDS('topmems_by_prices.RData')
   
   output$control2 <- renderUI({
     if(is.null(input$cluster_id)) return()
@@ -64,18 +64,7 @@ shinyServer(function(input, output, session) {
     symbol <- topfives[[clust_id]]$topfive[1]
     serie <- as.xts(spreads[[symbol]])
     plot(serie,  type='n', main="",ylab="Spread")
-    usr <- par('usr')
-    rect(
-      c(index(serie["2016-07-11"]), index(serie["2016-08-15"])), 
-      usr[3], 
-      c(index(serie["2016-08-03"]), index(serie["2016-09-15"])), 
-      usr[4], col='green', border=NA)
-    
-    rect(
-      c(index(serie["2016-06-23"]), index(serie["2016-08-03"]), index(serie["2016-09-15"])), 
-      usr[3], 
-      c(index(serie["2016-07-11"]), index(serie["2016-08-15"]), index(serie["2016-10-07"])), 
-      usr[4], col='red', border=NA)
+
     
     #rect(1, usr[3], 3, usr[4], col='red')
     for (i in input$members){
