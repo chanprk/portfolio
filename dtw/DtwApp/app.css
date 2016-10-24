@@ -1,11 +1,12 @@
-label {display:inline;}
-
-#display, #display2{
+#display{
   height:44vh !important;
 }
 
 #intro-text{
   font-size: 12pt;
+  font-family: 'Source Sans Pro';
+  white-space: normal;
+  padding: 30px 20px;
 }
 
 .navbar, .form-group{
