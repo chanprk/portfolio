@@ -1,10 +1,14 @@
 library(shiny)
 library(xts)
 require(dtwclust)
+require(markdown)
 library(stringr)
+library(png)
 
 components <- read.csv('FTSE100.csv')
 name_dict <- split(components, components$ticker)
+#model <- readRDS('model_by_prices.RData')
+
 
 tickerExt <- function(label) {
   ticker <- str_match_all(label, "LSE.([A-Z]+)\\b")[[1]][2]
@@ -116,8 +120,9 @@ prices <- as.xts(prices)['/2016-10-07']
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
-
+  
   topmems <- readRDS('topmems_by_prices.RData')
+  
   
   output$control2 <- renderUI({
     if(is.null(input$cluster_id)) return()
@@ -165,9 +170,6 @@ shinyServer(function(input, output, session) {
     
   })
   
-  output$cluster_plot <- renderPlot({
-    model <- readRDS('model_by_prices.RData')
-    plot(model)
-  })
+
   
 })

@@ -1,4 +1,4 @@
-
+require(markdown)
 library(shiny)
 
 one.sidebarPanel <- wellPanel(id='control',
@@ -23,7 +23,7 @@ shinyUI(navbarPage("Stock Clustering",
                                            id='intro-text', 
                                            includeMarkdown('Intro.md')
                                            ),
-                                    plotOutput("cluster_plot")
+                                    img(src="cluster_plot.png")
                                    )
                           
                       ),
