@@ -1,0 +1,59 @@
+<html ng-app="NerApp">
+<head>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+	
+	
+
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/flexboxgrid/6.3.1/flexboxgrid.min.css">
+
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="style.css">
+
+</head>
+<body ng-controller="BodyCtrl">
+
+<div class="container-fluid">
+
+<div class="row topbar">
+	<div class="col-md-4">
+		<select class="form-control" ng-model="articleNum" ng-change="edit()" ng-selected="1">
+		  <option value="">---Please select article or Paste your text below---</option>
+		  <option value="0">Weak pound boosts UK shares</option>
+		  <option value="1">Number of UK property funds suspended since Brexit vote doubles</option>
+		</select>
+	</div>
+</div>
+
+<div class="row display">
+	<div class="col-md-6">
+		<textarea class="form-control" ng-model="textValue" style="height:80vh"></textarea>
+	</div>
+	<div class="col-md-6">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Company Name</th>    
+					<th>Ticker</th>
+				</tr>
+			</thead>
+			<tbody data-ng-repeat="company in companies | orderBy:'name'">
+			    <tr>
+			      <td>{{company.name}}</td>
+			      <td>{{company.ticker}}</td>
+			    </tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+</div>
+<script src="init.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
