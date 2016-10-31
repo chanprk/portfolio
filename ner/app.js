@@ -22,7 +22,7 @@ app.controller('BodyCtrl', ['$scope', '$http', function($scope, $http){
 
   	var req = {
   				method: 'POST',
-  				url: 'http://localhost:8080/ner',
+  				url: 'http://ec2-35-162-101-49.us-west-2.compute.amazonaws.com:8080/ner',
   				headers: {
   					'Content-Type': undefined
   				},
