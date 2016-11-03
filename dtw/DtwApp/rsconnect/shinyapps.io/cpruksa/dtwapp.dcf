@@ -2,7 +2,7 @@ name: dtwapp
 title:
 account: cpruksa
 server: shinyapps.io
-appId: 133471
-bundleId: 595039
+appId: 133495
+bundleId: 595058
 url: https://cpruksa.shinyapps.io/dtwapp/
-when: 1477314839.57611
+when: 1477316826.12807

@@ -1,0 +1,10 @@
+Additional steps on AWS Server
+==============================
+
+ipython notebook --ip='*'
+
+nltk.download()
+
+clone git repo
++ nltk_trainer
++ twisted klein
