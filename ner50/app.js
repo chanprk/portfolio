@@ -35,7 +35,7 @@ app.controller('BodyCtrl', ['$rootScope', '$scope', '$state', '$http', '$element
 
       //var searchQuery = this.searchTerms;
 
-      $scope.statProgress = 'pending';
+      $scope.statProgress = "retrieve" ;
       $scope.articles = [];
 
       /* Go to the state */
@@ -45,10 +45,7 @@ app.controller('BodyCtrl', ['$rootScope', '$scope', '$state', '$http', '$element
       /* Reset Scroll so it moves to the top */
       $scope.headlineScroll = 0;
       var main_ele = $element.find('.main');
-      main_ele.scrollTop($scope.headlineScroll);          
-
-
-      
+      main_ele.scrollTop($scope.headlineScroll);               
 
         /* Create request for keywords */
         var getHeadlines = {
@@ -93,6 +90,9 @@ app.controller('BodyCtrl', ['$rootScope', '$scope', '$state', '$http', '$element
                 data: { id: arc.id }
               };
               return $http(getFullArticles).then(
+
+                $scope.statProgress = "annotate";
+
                 function(response){
                   console.log(arc.id);
                   //console.log(response.data);

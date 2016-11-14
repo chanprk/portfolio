@@ -1,5 +1,9 @@
 <div ng-switch on="statProgress">
-    <div class="animate-switch" ng-switch-when="pending">
+    <div class="animate-switch" ng-switch-when="retrieve">
+    	<div class="waiting-text" style="display:block">Retrieving articles.</div>
+    	<div class="loader">Loading...</div>
+    </div>
+    <div class="animate-switch" ng-switch-when="annotate">
     	<div class="waiting-text" style="display:block">Each article is being annotated.</div>
     	<div class="loader">Loading...</div>
     </div>
