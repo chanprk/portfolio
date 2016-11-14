@@ -91,9 +91,8 @@ app.controller('BodyCtrl', ['$rootScope', '$scope', '$state', '$http', '$element
               };
               return $http(getFullArticles).then(
 
-                $scope.statProgress = "annotate";
-
                 function(response){
+                  $scope.statProgress = "annotate";
                   console.log(arc.id);
                   //console.log(response.data);
                   arc.companies = $.map(response.data, function(obj){
