@@ -1,0 +1,23 @@
+<div class="col-sm-6 col-md-8 main"> 
+  <div ui-view="main" id="main-view" autoscroll="false">
+
+
+	<div class="col-lg-6" id="copy-wrapper">
+      <div class="intro-text">
+        Please select the keyword from list on the right. This app will return Financial Times's articles retrieved by google search.
+      </div>
+	</div>
+
+  </div> 
+</div> 
+<div class="col-sm-4 offset-sm-6 col-md-4 offset-md-8 sidebar" style="height:100%">
+  <div id="navbar" class="navbar">
+      <select class="form-control" ng-model="keywordNum" ng-change="MakeRequest(keywordNum)">
+        <option value="0" ng-selected="selectedKeyword==0">---Please select a keyword below---</option>
+        <option value="1" ng-selected="selectedKeyword==1">weak pound boosts</option>
+        <option value="2" ng-selected="selectedKeyword==2">trump presidency stocks</option>
+      </select>
+  </div>
+  <div ui-view="panel" style="height:100%;"> 
+  </div> 
+</div>

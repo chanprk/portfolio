@@ -1,0 +1,11 @@
+ 
+<div data-ng-repeat="article in articles | orderBy:'count':true" >
+	<div class="bs-callout bs-callout-info" id="callout-navbar-breakpoint" > 
+		<h4>{{article.title}}</h4> 
+		{{article.paragraphOne}}
+		<div ng-if="article.ready">
+			<button type="button" ng-click="article.open()" class="btn btn-primary btn-sm">Read</button>
+			<span>{{article.matches.length}} companies detected</span>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,14 @@
+<table id="tlist" class="table table-sm">
+  <thead>
+    <tr>
+      <th>Company Name</th>    
+      <th>Ticker</th>
+    </tr>
+  </thead>
+  <tbody data-ng-repeat="company in companies | orderBy:'name'">
+    <tr>
+      <td>{{company.name}}</td>
+      <td>{{company.ticker}}</td>
+    </tr>
+  </tbody>
+</table>
